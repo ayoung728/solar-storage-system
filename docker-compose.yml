@@ -1,0 +1,163 @@
+# =============================================================================
+# 太陽能儲能監控系統 - Docker Compose 部署配置
+# Solar Energy Storage Management System
+# =============================================================================
+
+services:
+  # =========================================================================
+  # PostgreSQL 資料庫服務
+  # =========================================================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: solar-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: solar_storage
+      POSTGRES_USER: solar_admin
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-solar_secure_password_2024}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/01-init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U solar_admin"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - solar-network
+
+  # =========================================================================
+  # Redis 快取服務（用於即時數據緩存）
+  # =========================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: solar-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - solar-network
+
+  # =========================================================================
+  # NestJS API 後端服務
+  # =========================================================================
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: solar-api
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - PORT=8000
+      - DATABASE_HOST=postgres
+      - DATABASE_PORT=5432
+      - DATABASE_NAME=solar_storage
+      - DATABASE_USER=solar_admin
+      - DATABASE_PASSWORD=${DB_PASSWORD:-solar_secure_password_2024}
+      - JWT_SECRET=${JWT_SECRET:-your-super-secret-jwt-key-change-in-production}
+      - JWT_EXPIRATION=3600
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./api/src:/app/src  # 開發模式熱重載（可選）
+    networks:
+      - solar-network
+
+  # =========================================================================
+  # WebSocket 即時通訊服務
+  # =========================================================================
+  websocket:
+    build:
+      context: ./websocket
+      dockerfile: Dockerfile
+    container_name: solar-websocket
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - PORT=8001
+      - API_URL=http://api:8000
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    ports:
+      - "8001:8001"
+    depends_on:
+      - api
+      - redis
+    networks:
+      - solar-network
+
+  # =========================================================================
+  # React 前端服務（開發模式）
+  # =========================================================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: development
+    container_name: solar-frontend
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=development
+      - VITE_API_URL=http://localhost:8000
+      - VITE_WS_URL=ws://localhost:8001
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend/src:/app/src  # 開發模式熱重載
+    depends_on:
+      - api
+    networks:
+      - solar-network
+
+  # =========================================================================
+  # Nginx 反向代理（生產環境）
+  # =========================================================================
+  nginx:
+    image: nginx:alpine
+    container_name: solar-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro  # SSL 憑證目錄
+    depends_on:
+      - api
+      - frontend
+    networks:
+      - solar-network
+
+# =========================================================================
+# 數據卷定義
+# =========================================================================
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+# =========================================================================
+# 網路定義
+# =========================================================================
+networks:
+  solar-network:
+    driver: bridge

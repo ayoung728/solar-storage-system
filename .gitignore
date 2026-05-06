@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.env
+*.log
+.DS_Store
+.vscode/
+api/coverage/
+api/test_*.js
+websocket/test_*.js
