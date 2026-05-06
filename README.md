@@ -69,10 +69,10 @@
 | 實體 | 主要欄位 | 說明 |
 |------|----------|------|
 | `users` | id, username, password_hash, role, email | 系統使用者帳號 |
-| `devices` | id, name, type, status, location, telemetry_data (JSONB) | 太陽能相關設備 |
-| `alerts` | id, device_id, severity, message, status | 設備異常告警記錄 |
-| `tickets` | id, device_id, title, priority, status, assigned_to | 客服/維修工單 |
-| `maintenance_records` | id, device_id, type, description, status, completed_at | 維護排程與紀錄 |
+|| `devices` | id, name, device_type, status, location, specifications (JSONB), telemetry_data (JSONB), last_seen | 太陽能相關設備 |
+|| `alerts` | id, device_id, severity, message, status, acknowledged_by, resolved_at | 設備異常告警記錄 |
+|| `tickets` | id, device_id, title, priority, status, assigned_to, created_by, resolved_at | 客服/維修工單 |
+|| `maintenance` | id, device_id, title, description, scheduled_date, completed_date, status, technician, cost | 維護排程與紀錄 |
 
 ---
 
@@ -398,6 +398,11 @@ solar-storage-system/
 | GET | `/api/devices` | 取得所有設備 | ✅ |
 | GET | `/api/devices/stats` | 設備統計 | ✅ |
 | GET | `/api/devices/:id` | 取得單一設備 | ✅ |
+| POST | `/api/devices` | 新增設備 | ✅ |
+| PUT | `/api/devices/:id` | 更新設備資料 | ✅ |
+| DELETE | `/api/devices/:id` | 刪除設備 | ✅ |
+| PUT | `/api/devices/:id/status` | 切換設備狀態 | ✅ |
+| PUT | `/api/devices/:id/telemetry` | 更新即時數據 | ✅ |
 
 ### Alerts 警報
 
@@ -406,6 +411,9 @@ solar-storage-system/
 | GET | `/api/alerts` | 取得所有警報 | ✅ |
 | GET | `/api/alerts/stats` | 警報統計 | ✅ |
 | GET | `/api/alerts/critical` | 取得緊急警報 | ✅ |
+| POST | `/api/alerts` | 新增警報 | ✅ |
+| PUT | `/api/alerts/:id/status` | 變更警報狀態 | ✅ |
+| DELETE | `/api/alerts/resolved` | 清除已解決警報 | ✅ |
 
 ### Tickets 工單
 
@@ -413,7 +421,11 @@ solar-storage-system/
 |------|------|------|:---------:|
 | GET | `/api/tickets` | 取得所有工單 | ✅ |
 | GET | `/api/tickets/statistics` | 工單統計 | ✅ |
+| GET | `/api/tickets/:id` | 取得單一工單 | ✅ |
 | POST | `/api/tickets` | 建立工單 | ✅ |
+| PUT | `/api/tickets/:id` | 更新工單 | ✅ |
+| DELETE | `/api/tickets/:id` | 刪除工單 | ✅ |
+| GET | `/api/tickets/priority/:priority` | 依優先級篩選 | ✅ |
 
 ### Maintenance 維護
 
@@ -421,6 +433,13 @@ solar-storage-system/
 |------|------|------|:---------:|
 | GET | `/api/maintenance` | 取得所有維護紀錄 | ✅ |
 | GET | `/api/maintenance/stats` | 維護統計 | ✅ |
+| GET | `/api/maintenance/upcoming` | 即將到來的維護 | ✅ |
+| GET | `/api/maintenance/device/:deviceId` | 依設備查詢 | ✅ |
+| GET | `/api/maintenance/:id` | 取得單一紀錄 | ✅ |
+| POST | `/api/maintenance` | 新增維護排程 | ✅ |
+| PUT | `/api/maintenance/:id/status` | 變更維護狀態 | ✅ |
+| PUT | `/api/maintenance/:id/complete` | 完成維護並記錄 | ✅ |
+| DELETE | `/api/maintenance/:id` | 刪除維護紀錄 | ✅ |
 
 ---
 
@@ -442,12 +461,21 @@ solar-storage-system/
 ## 🔧 開發中功能
 
 - [ ] 多角色權限細粒度控制
-- [ ] 設備即時 WebSocket 數據推送
-- [ ] 設備新增/編輯表單
 - [ ] 進階圖表（折線圖、圓餅圖）
 - [ ] 搜尋與篩選強化
 - [ ] 分頁支援
 - [ ] 匯出報表（CSV/PDF）
+
+### ✅ 已實現功能
+
+- [x] 設備 CRUD 與即時資料顯示
+- [x] 警報管理與狀態流轉
+- [x] 工單建立/編輯/刪除與統計
+- [x] 維護排程與完成回報
+- [x] 儀表板統計圖表
+- [x] JWT 登入認證
+- [x] WebSocket 即時通訊
+- [x] Docker/Podman 容器化部署
 
 ---
 
