@@ -11,7 +11,13 @@ async function bootstrap() {
   // Enable CORS
   app.enableCors();
   
-  const port = process.env.API_PORT || 8000;
+  // Health check endpoint (for Docker healthcheck)
+  const expressApp = app.getHttpAdapter().getInstance();
+  expressApp.get('/api/health', (_req: any, res: any) => {
+    res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  });
+  
+  const port = process.env.PORT || 8000;
   await app.listen(port);
   console.log(`API Server running on http://localhost:${port}`);
 }

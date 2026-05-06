@@ -143,23 +143,25 @@
 - **PostgreSQL** ^14.0.0
 - **npm** ^9.0.0
 
-### 1. 啟動資料庫
+### 方法一：一鍵啟動腳本（推薦）
+
+```bash
+cd ~/solar-storage-system
+./start.sh
+```
+
+腳本會自動完成：檢查 PostgreSQL → 初始化資料庫 → 建置服務 → 用 PM2 啟動所有服務。
+
+### 方法二：手動啟動
+
+#### 1. 啟動資料庫
 
 ```bash
 # 使用系統安裝的 PostgreSQL
-sudo systemctl start postgresql
-
-# 或使用 Docker
-docker run -d \
-  --name solar-db \
-  -e POSTGRES_DB=solar_storage \
-  -e POSTGRES_USER=solar_admin \
-  -e POSTGRES_PASSWORD=solar_secure_password_2024 \
-  -p 5432:5432 \
-  postgres:16-alpine
+sudo service postgresql start
 
 # 初始化資料表與種子資料
-psql -h localhost -U solar_admin -d solar_storage -f database/init.sql
+PGPASSWORD=solar_secure_password_2024 psql -h localhost -U solar_admin -d postgres -f database/init.sql
 ```
 
 ### 2. 啟動後端 API
@@ -197,21 +199,33 @@ npm install
 VITE_API_URL=http://localhost:8000 npx vite --host 0.0.0.0 --port 5173
 ```
 
-### 5. 開啟瀏覽器
+### 方法三：PM2 直接啟動
 
-前往 **http://localhost:5173** 並登入
+```bash
+# 啟動所有服務
+pm2 start ecosystem.config.js
+pm2 save
 
-| 預設帳號 | 預設密碼 |
-|----------|----------|
-| **admin** | **admin123** |
+# 查看狀態
+pm2 status
+pm2 logs
+```
 
-### Docker Compose（一鍵啟動）
+### 方法四：Docker Compose（需 Docker 環境）
 
 ```bash
 docker compose up -d
 ```
 
-> ⚠️ 注意：`.env` 檔案中的金鑰為開發環境使用，請勿直接用於正式環境。
+> ⚠️ **注意**：`.env` 檔案中的金鑰為開發環境使用，請勿直接用於正式環境。
+
+### 5. 開啟瀏覽器
+
+前往 **http://localhost:3000** 並登入
+
+| 預設帳號 | 預設密碼 |
+|----------|----------|
+| **admin** | **admin123** |
 
 ---
 

@@ -1,0 +1,51 @@
+module.exports = {
+  apps: [
+    {
+      name: 'solar-api',
+      cwd: '/home/ayoung/solar-storage-system/api',
+      script: 'dist/main.js',
+      interpreter: 'node',
+      env: {
+        PORT: 8000,
+        DATABASE_HOST: 'localhost',
+        DATABASE_PORT: 5432,
+        DATABASE_NAME: 'solar_storage',
+        DATABASE_USER: 'solar_admin',
+        DATABASE_PASSWORD: 'solar_secure_password_2024',
+        JWT_SECRET: 'solar-storage-jwt-secret-key-change-in-production-2024',
+        NODE_ENV: 'production',
+      },
+      max_restarts: 10,
+      restart_delay: 3000,
+      watch: false,
+    },
+    {
+      name: 'solar-websocket',
+      cwd: '/home/ayoung/solar-storage-system/websocket',
+      script: 'dist/main.js',
+      interpreter: 'node',
+      env: {
+        PORT: 8001,
+        NODE_ENV: 'production',
+      },
+      max_restarts: 10,
+      restart_delay: 3000,
+      watch: false,
+    },
+    {
+      name: 'solar-frontend',
+      cwd: '/home/ayoung/solar-storage-system/frontend',
+      script: 'node_modules/.bin/vite',
+      args: '--host 0.0.0.0 --port 3000',
+      interpreter: 'node',
+      env: {
+        VITE_API_URL: 'http://localhost:8000',
+        VITE_WS_URL: 'ws://localhost:8001',
+        NODE_ENV: 'development',
+      },
+      max_restarts: 10,
+      restart_delay: 3000,
+      watch: false,
+    },
+  ],
+}
