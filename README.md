@@ -211,10 +211,14 @@ pm2 status
 pm2 logs
 ```
 
-### 方法四：Docker Compose（需 Docker 環境）
+### 方法四：Docker Compose / Podman Compose
 
 ```bash
+# Docker（一般 Linux/macOS 環境）
 docker compose up -d
+
+# Podman（OrbStack / 無 BPF cgroup 環境）
+podman-compose up -d
 ```
 
 > ⚠️ **注意**：`.env` 檔案中的金鑰為開發環境使用，請勿直接用於正式環境。
@@ -226,6 +230,47 @@ docker compose up -d
 | 預設帳號 | 預設密碼 |
 |----------|----------|
 | **admin** | **admin123** |
+
+---
+
+## 🐳 Podman 日常管理指令（OrbStack / 無 Docker 環境）
+
+若系統不支援 Docker（kernel 缺乏 BPF cgroup device 支援），可使用 **Podman** 替代：
+
+```bash
+cd ~/solar-storage-system
+
+# ─── 啟動全部服務 ───
+podman-compose up -d
+
+# ─── 重新建置並啟動特定服務（原始碼變更後） ───
+podman rm -f solar-api               # 移除舊容器
+podman-compose up -d api             # 重建映像並啟動
+
+# ─── 查看容器狀態 ───
+podman ps
+podman ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+
+# ─── 查看服務日誌 ───
+podman logs solar-api                # API 日誌
+podman logs solar-websocket          # WebSocket 日誌
+podman logs solar-frontend           # 前端日誌
+podman logs -f solar-api             # 持續追蹤日誌
+
+# ─── 進入容器 ───
+podman exec -it solar-api sh         # API 容器 shell
+podman exec solar-postgres psql -U solar_admin -d solar_storage -c "SELECT * FROM devices;"
+
+# ─── 停止全部服務 ───
+podman-compose down
+
+# ─── 重建映像（Dockerfile 變更後） ───
+podman-compose build
+podman-compose up -d
+
+# ─── 清除舊容器與映像 ───
+podman system prune -f
+```
 
 ---
 
@@ -343,8 +388,8 @@ solar-storage-system/
 
 | 方法 | 路徑 | 說明 | 需要 Token |
 |------|------|------|:---------:|
-| POST | `/auth/login` | 帳號密碼登入 | ❌ |
-| GET | `/auth/profile` | 取得使用者資料 | ✅ |
+| POST | `/api/auth/login` | 帳號密碼登入 | ❌ |
+| GET | `/api/auth/profile` | 取得使用者資料 | ✅ |
 
 ### Devices 設備
 
