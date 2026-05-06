@@ -10,7 +10,7 @@ async function bootstrap() {
     credentials: true,
   });
 
-  const port = process.env.WS_PORT || 3002;
+  const port = process.env.PORT || 3002;
   await app.listen(port);
   console.log(`WebSocket service running on port ${port}`);
 }

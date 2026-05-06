@@ -1,19 +1,26 @@
 # =============================================================================
 # 太陽能儲能前端 - Dockerfile
-# 策略：本地建置後只複製成品，避免容器內 RUN 指令
+# 開發階段：容器內執行 npm install，確保 native 模組與 Alpine (musl) 相容
+# 生產階段：Nginx 靜態檔案服務
 # =============================================================================
 
 FROM node:20-alpine AS development
 
 WORKDIR /app
 
-COPY node_modules ./node_modules
-COPY src ./src
-COPY index.html ./
+# 先複製依賴設定檔，利用快取加速重建
 COPY package.json ./
+COPY package-lock.json* ./
+
+# 在容器內安裝依賴（確保 native 模組正確對應 Alpine 的 musl libc）
+RUN npm install
+
+# 複製原始碼與建置設定
+COPY index.html ./
 COPY vite.config.ts ./
 COPY tsconfig.json ./
 COPY tsconfig.node.json ./
+COPY src ./src
 
 EXPOSE 3000
 
