@@ -26,12 +26,15 @@ function LoginPage() {
   return (
     <div className="login-page">
       <div className="login-container">
-        <h1>太陽能儲能監控系統</h1>
-        <p className="login-subtitle">Solar Storage Monitoring System</p>
+        <div className="login-logo">
+          <div className="login-logo-icon">☀️</div>
+          <h1>太陽能儲能監控系統</h1>
+          <p className="login-subtitle">Solar Energy Storage • Monitoring System</p>
+        </div>
 
         {error && (
           <div className="login-error">
-            ❌ {error}
+            {error}
           </div>
         )}
 
@@ -43,7 +46,7 @@ function LoginPage() {
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              placeholder="請輸入帳號"
+              placeholder="請輸入管理員帳號"
               required
               autoComplete="username"
             />
@@ -63,7 +66,7 @@ function LoginPage() {
           </div>
 
           <button type="submit" className="btn btn-primary btn-lg" disabled={loading}>
-            {loading ? '登入中...' : '登入'}
+            {loading ? '登入中...' : '登入系統'}
           </button>
         </form>
 
