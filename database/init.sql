@@ -85,7 +85,7 @@ INSERT INTO users (username, email, password_hash, full_name, role)
 VALUES (
     'admin',
     'admin@solar-storage.local',
-    '$2a$10$YQ/GOXXHnFfEeDvGjqM3OeqCJlNqR.6tXZBhFvLxGzEiJkO.pQrS6',
+    '$2a$10$IeYSNlFCQIsrVckeFSMcDOVkPSAMbWX2Jwja7L3q1di7.kpRat9Ga',
     '系統管理員',
     'admin'
 ) ON CONFLICT (username) DO NOTHING;
@@ -103,3 +103,17 @@ INSERT INTO alerts (device_id, severity, message, status) VALUES
 (1, 'high', '太陽能板陣列 A 效率低於預期值 85%', 'unresolved'),
 (2, 'medium', '太陽能板陣列 B 溫度偏高，建議檢查散熱', 'acknowledged'),
 (3, 'critical', '電池儲存系統電量低於 20%，請立即充電', 'unresolved');
+
+-- 建立測試工單資料
+INSERT INTO tickets (title, description, status, priority, device_id, created_by) VALUES
+('太陽能板陣列 A 效率異常', '客服回報：客戶反映 A 區發電效率明顯下降，需派員檢查', 'open', 'high', 1, 1),
+('電池儲存系統低電量警報', '系統自動產生：電池電量低於安全閾值，需確認充電狀態', 'in_progress', 'urgent', 3, 1),
+('逆變器定期檢查', '排程檢查：逆變器主單元需進行季度性能檢測', 'open', 'medium', 4, 1)
+ON CONFLICT DO NOTHING;
+
+-- 建立測試維護紀錄
+INSERT INTO maintenance (device_id, title, description, scheduled_date, status, technician) VALUES
+(5, '監控系統韌體更新', '監控系統主機 v2.3 韌體升級，預計停機 2 小時', CURRENT_DATE + INTERVAL '3 days', 'scheduled', '張工程師'),
+(4, '逆變器散熱系統清潔', '逆變器散熱風扇定期清潔與保養', CURRENT_DATE + INTERVAL '7 days', 'scheduled', '李技術員'),
+(3, '電池組均衡充電', '電池管理系統執行均衡充電流程', CURRENT_DATE - INTERVAL '2 days', 'completed', '王技術員')
+ON CONFLICT DO NOTHING;

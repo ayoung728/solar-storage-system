@@ -25,11 +25,11 @@ export class DevicesService {
   async create(createDeviceDto: Partial<Device>): Promise<Device> {
     // Check if serial number already exists
     const existingDevice = await this.devicesRepository.findOne({
-      where: { serialNumber: createDeviceDto.serialNumber },
+      where: { name: createDeviceDto.name },
     });
 
     if (existingDevice) {
-      throw new BadRequestException(`Device with serial number ${createDeviceDto.serialNumber} already exists`);
+      throw new BadRequestException(`Device with name ${createDeviceDto.name} already exists`);
     }
 
     const newDevice = this.devicesRepository.create(createDeviceDto);
@@ -40,13 +40,13 @@ export class DevicesService {
     const device = await this.findOne(id);
 
     // If updating serial number, check for duplicates
-    if (updateDeviceDto.serialNumber && updateDeviceDto.serialNumber !== device.serialNumber) {
+    if (updateDeviceDto.name && updateDeviceDto.name !== device.name) {
       const existingDevice = await this.devicesRepository.findOne({
-        where: { serialNumber: updateDeviceDto.serialNumber },
+        where: { name: updateDeviceDto.name },
       });
 
       if (existingDevice) {
-        throw new BadRequestException(`Device with serial number ${updateDeviceDto.serialNumber} already exists`);
+        throw new BadRequestException(`Device with name ${updateDeviceDto.name} already exists`);
       }
     }
 

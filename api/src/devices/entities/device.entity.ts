@@ -2,9 +2,9 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateCol
 
 export enum DeviceType {
   SOLAR_PANEL = 'solar_panel',
-  BATTERY_STORAGE = 'battery_storage',
+  BATTERY = 'battery',
   INVERTER = 'inverter',
-  MONITORING = 'monitoring'
+  MONITOR = 'monitor'
 }
 
 export enum DeviceStatus {
@@ -19,8 +19,8 @@ export class Device {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ name: 'name', unique: true })
-  serialNumber: string;
+  @Column({ name: 'name' })
+  name: string;
 
   @Column({ name: 'device_type', type: 'enum', enum: DeviceType })
   deviceType: DeviceType;

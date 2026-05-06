@@ -181,7 +181,6 @@ export const api = {
     request<void>(`/api/maintenance/${id}`, { method: 'DELETE' }, token),
 }
 
-export type Device = import('../types').Device
 export type DeviceStats = import('../types').DeviceStats
 export type Alert = import('../types').Alert
 export type AlertStats = import('../types').AlertStats
