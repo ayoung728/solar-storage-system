@@ -6,6 +6,16 @@ import { DevicesModule } from './devices/devices.module';
 import { AlertsModule } from './alerts/alerts.module';
 import { MaintenanceModule } from './maintenance/maintenance.module';
 import { AuthModule } from './auth/auth.module';
+import { CustomersModule } from './customers/customers.module';
+import { SitesModule } from './sites/sites.module';
+import { UnitsModule } from './units/units.module';
+import { MaintenanceItemsModule } from './maintenance-items/maintenance-items.module';
+import { WorkItemsModule } from './work-items/work-items.module';
+import { DispatchPackagesModule } from './dispatch-packages/dispatch-packages.module';
+import { ExecutionsModule } from './executions/executions.module';
+import { ContractorsModule } from './contractors/contractors.module';
+import { PaymentsModule } from './payments/payments.module';
+import { EngineersModule } from './engineers/engineers.module';
 
 @Module({
   imports: [
@@ -28,6 +38,16 @@ import { AuthModule } from './auth/auth.module';
     DevicesModule,
     AlertsModule,
     MaintenanceModule,
+    CustomersModule,
+    SitesModule,
+    UnitsModule,
+    MaintenanceItemsModule,
+    WorkItemsModule,
+    DispatchPackagesModule,
+    ExecutionsModule,
+    ContractorsModule,
+    PaymentsModule,
+    EngineersModule,
   ],
 })
 export class AppModule {}
