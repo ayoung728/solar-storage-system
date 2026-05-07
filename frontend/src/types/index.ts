@@ -11,6 +11,8 @@ export interface Device {
   type: DeviceType
   status: DeviceStatus
   location?: string
+  siteId?: number
+  code?: string
   installedDate?: string
   lastMaintenanceDate?: string
   manufacturer?: string
@@ -21,6 +23,8 @@ export interface Device {
   telemetryData: Record<string, unknown>
   createdAt?: string
   updatedAt?: string
+  units?: Unit[]
+  site?: Site
 }
 
 export interface DeviceStats {
@@ -29,6 +33,173 @@ export interface DeviceStats {
   offline: number
   maintenance: number
   warning: number
+}
+
+// Customer types
+
+export interface Customer {
+  id: number
+  code: string
+  name: string
+  taxId?: string
+  contactPerson?: string
+  phone?: string
+  email?: string
+  address?: string
+  status: 'active' | 'inactive'
+  sites?: Site[]
+  createdAt?: string
+  updatedAt?: string
+}
+
+// Site types
+
+export interface Site {
+  id: number
+  code: string
+  customerId: number
+  customer?: Customer
+  name: string
+  siteType: string
+  address?: string
+  latitude?: number
+  longitude?: number
+  capacityKwp?: number
+  installedDate?: string
+  status: 'active' | 'inactive' | 'constructing'
+  devices?: Device[]
+  createdAt?: string
+  updatedAt?: string
+}
+
+// Unit types
+
+export interface Unit {
+  id: number
+  deviceId: number
+  code: string
+  name: string
+  unitType: string
+  specifications?: Record<string, unknown>
+  status: 'active' | 'inactive' | 'retired'
+  maintenanceItems?: MaintenanceItem[]
+  createdAt?: string
+  updatedAt?: string
+}
+
+export interface MaintenanceItem {
+  id: number
+  unitId: number
+  name: string
+  frequencyType: 'weekly' | 'monthly' | 'quarterly' | 'half_yearly' | 'yearly'
+  frequencyValue: number
+  steps?: MaintenanceStep[]
+  acceptanceCriteria?: AcceptanceCriterion[]
+  estimatedMinutes?: number
+  isActive: boolean
+  createdAt?: string
+  updatedAt?: string
+}
+
+export interface MaintenanceStep {
+  order: number
+  description: string
+  estMin?: number
+  tools?: string[]
+}
+
+export interface AcceptanceCriterion {
+  order: number
+  item: string
+  condition: string
+  range?: { min?: number; max?: number; unit?: string }
+}
+
+export interface WorkItem {
+  id: number
+  sourceType: 'maintenance_plan' | 'device_alert' | 'customer_ticket' | 'manual'
+  sourceId?: number
+  title: string
+  description?: string
+  priority: 'critical' | 'high' | 'medium' | 'low'
+  siteId?: number
+  deviceId?: number
+  unitId?: number
+  maintenanceItemId?: number
+  status: 'pending' | 'in_pool' | 'assigned' | 'in_progress' | 'completed' | 'cancelled'
+  estimatedMinutes?: number
+  actualMinutes?: number
+  createdAt?: string
+}
+
+export interface DispatchPackage {
+  id: number
+  packageCode: string
+  title?: string
+  executorType: 'internal' | 'contractor'
+  engineerId?: number
+  contractorId?: number
+  status: 'draft' | 'assigned' | 'accepted' | 'in_progress' | 'awaiting_acceptance' | 'completed' | 'cancelled'
+  priority: string
+  scheduledDate?: string
+  completedDate?: string
+  notes?: string
+  dispatchPackageItems?: DispatchPackageItem[]
+  createdAt?: string
+}
+
+export interface DispatchPackageItem {
+  id: number
+  packageId: number
+  workItemId: number
+  sortOrder: number
+  workItem?: WorkItem
+}
+
+export interface Engineer {
+  id: number
+  userId?: number
+  employeeId: string
+  fullName: string
+  phone?: string
+  email?: string
+  shiftGroup: 'day' | 'night' | 'backup'
+  isActive: boolean
+  createdAt?: string
+}
+
+export interface EngineerSchedule {
+  id: number
+  engineerId: number
+  workDate: string
+  shift: 'day' | 'night' | 'backup'
+  note?: string
+  engineer?: Engineer
+}
+
+export interface Contractor {
+  id: number
+  name: string
+  contactPerson?: string
+  phone?: string
+  email?: string
+  address?: string
+  taxId?: string
+  isActive: boolean
+  bankName?: string
+  bankAccount?: string
+}
+
+export interface PaymentRecord {
+  id: number
+  executionRecordId: number
+  contractorId: number
+  amount: number
+  status: 'pending_approval' | 'approved' | 'paid' | 'cancelled'
+  pricingType?: 'fixed' | 'hourly' | 'itemized'
+  invoiceNumber?: string
+  paidDate?: string
+  notes?: string
 }
 
 // Alert types matching backend entity
@@ -127,4 +298,19 @@ export interface User {
 
 export interface LoginResponse {
   accessToken: string
+}
+
+// DeviceFormData used by DeviceDetailPage
+
+export interface DeviceFormData {
+  name: string
+  deviceId: string
+  type: string
+  status: string
+  location: string
+  manufacturer: string
+  model: string
+  firmwareVersion: string
+  installedDate: string
+  serialNumber: string
 }

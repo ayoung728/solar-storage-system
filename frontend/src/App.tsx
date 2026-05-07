@@ -7,13 +7,17 @@ import AlertsPage from './pages/AlertsPage'
 import MaintenancePage from './pages/MaintenancePage'
 import TicketsPage from './pages/TicketsPage'
 import LoginPage from './pages/LoginPage'
+import CustomersPage from './pages/CustomersPage'
+import CustomerDetailPage from './pages/CustomerDetailPage'
+import SitesPage from './pages/SitesPage'
+import SiteDetailPage from './pages/SiteDetailPage'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { ToastProvider, useToast } from './components/Toast'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { api } from './services/api'
 import './App.css'
 
-// WebSocket 服務：即時接收設備 telemetryData
+// WebSocket 服務
 function useWebSocket() {
   const wsRef = useRef<WebSocket | null>(null)
   const onMessageRef = useRef<((data: any) => void) | null>(null)
@@ -66,73 +70,68 @@ function useWebSocket() {
   return { connect, disconnect }
 }
 
-// 受保護的路由組件
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuth()
-
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />
   }
-
   return <>{children}</>
 }
 
-// Toast 通知組件（需要 useToast context）
 function ToastContainer() {
-  // This component just renders the toast container from ToastProvider
   return null
 }
 
-// 主要應用組件（需要 AuthProvider）
 function AppContent() {
   const location = useLocation()
   const { isAuthenticated, token } = useAuth()
   const { connect, disconnect } = useWebSocket()
 
-  // WebSocket 即時 telemetryData 處理
   useEffect(() => {
     if (isAuthenticated && token) {
       connect(token, (data) => {
-        // 處理來自後端的即時設備數據
         console.log('即時 telemetryData:', data)
-
-        // 可以在這裡更新特定設備的狀態或觸發警報
         if (data.type === 'telemetry_update') {
-          // 更新對應設備的即時數據
           console.log(`設備 ${data.deviceId} 的 telemetryData 已更新:`, data.data)
         }
-
         if (data.type === 'alert') {
-          // 新警報通知
           console.log('收到新警報:', data.message)
         }
       })
-
       return () => disconnect()
     }
   }, [isAuthenticated, token, connect, disconnect])
 
-  // 側邊導航
   const Sidebar = () => {
     const navItems = [
-      { path: '/', label: '📊 儀表板', icon: '📊' },
-      { path: '/devices', label: '🔌 設備管理', icon: '🔌' },
-      { path: '/alerts', label: '🔔 警報中心', icon: '🔔' },
-      { path: '/maintenance', label: '🔧 維護管理', icon: '🔧' },
-      { path: '/tickets', label: '📋 工單系統', icon: '📋' },
+      { path: '/', label: '儀表板', icon: '📊' },
+      { path: '/customers', label: '客戶管理', icon: '🏢' },
+      { path: '/sites', label: '案場總覽', icon: '☀️' },
+      { path: '/devices', label: '設備列表', icon: '🔌' },
+      { path: '/alerts', label: '警報中心', icon: '🔔' },
+      { path: '/tickets', label: '工單系統', icon: '📋' },
     ]
+
+    const isActive = (path: string) => {
+      if (path === '/') return location.pathname === '/'
+      return location.pathname.startsWith(path)
+    }
 
     return (
       <aside className="sidebar">
-        <div className="logo">☀️ 太陽能儲能監控系統</div>
+        <div className="logo">
+          <div className="logo-icon">☀️</div>
+          <span className="logo-text">太陽能儲能<br/>監控系統</span>
+        </div>
         <nav>
           <ul className="nav-menu">
             {navItems.map(item => (
               <li key={item.path}>
                 <Link
                   to={item.path}
-                  className={`nav-link ${location.pathname === item.path ? 'active' : ''}`}
+                  className={`nav-link ${isActive(item.path) ? 'active' : ''}`}
                 >
+                  <span className="nav-icon">{item.icon}</span>
                   {item.label}
                 </Link>
               </li>
@@ -142,7 +141,11 @@ function AppContent() {
 
         {isAuthenticated && (
           <div className="sidebar-footer">
-            <button className="btn btn-danger" onClick={() => api.logout()}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12, padding: '0 4px' }}>
+              <div className="user-avatar">A</div>
+              <span className="user-name">管理員</span>
+            </div>
+            <button className="btn btn-danger btn-sm" onClick={() => api.logout()} style={{ width: '100%' }}>
               登出
             </button>
           </div>
@@ -151,14 +154,22 @@ function AppContent() {
     )
   }
 
-  // 頂部欄
   const TopBar = () => (
     <header className="topbar">
-      <h1>太陽能儲能監控系統</h1>
+      <h1>
+        {location.pathname === '/' && '📊 儀表板'}
+        {location.pathname.startsWith('/customers') && '🏢 客戶管理'}
+        {location.pathname.startsWith('/sites') && '☀️ 案場管理'}
+        {location.pathname.startsWith('/devices') && '🔌 設備管理'}
+        {location.pathname.startsWith('/alerts') && '🔔 警報中心'}
+        {location.pathname.startsWith('/tickets') && '📋 工單系統'}
+        {location.pathname.startsWith('/maintenance') && '🔧 維護管理'}
+      </h1>
       {isAuthenticated && (
         <div className="user-info">
-          <span>👤 管理員</span>
-          <button className="btn btn-sm" onClick={() => api.logout()}>
+          <div className="user-avatar">A</div>
+          <span className="user-name">管理員</span>
+          <button className="btn btn-outline btn-sm" onClick={() => api.logout()}>
             登出
           </button>
         </div>
@@ -174,42 +185,19 @@ function AppContent() {
         {isAuthenticated && <TopBar />}
 
         <Routes>
-          {/* 公開路由 */}
           <Route path="/login" element={<LoginPage />} />
 
-          {/* 受保護的路由 */}
-          <Route path="/" element={
-            <ProtectedRoute>
-              <DashboardPage />
-            </ProtectedRoute>
-          } />
-          <Route path="/devices" element={
-            <ProtectedRoute>
-              <DevicesPage />
-            </ProtectedRoute>
-          } />
-          <Route path="/devices/:deviceId" element={
-            <ProtectedRoute>
-              <DeviceDetailPage />
-            </ProtectedRoute>
-          } />
-          <Route path="/alerts" element={
-            <ProtectedRoute>
-              <AlertsPage />
-            </ProtectedRoute>
-          } />
-          <Route path="/maintenance" element={
-            <ProtectedRoute>
-              <MaintenancePage />
-            </ProtectedRoute>
-          } />
-          <Route path="/tickets" element={
-            <ProtectedRoute>
-              <TicketsPage />
-            </ProtectedRoute>
-          } />
+          <Route path="/" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+          <Route path="/customers" element={<ProtectedRoute><CustomersPage /></ProtectedRoute>} />
+          <Route path="/customers/:id" element={<ProtectedRoute><CustomerDetailPage /></ProtectedRoute>} />
+          <Route path="/sites" element={<ProtectedRoute><SitesPage /></ProtectedRoute>} />
+          <Route path="/sites/:id" element={<ProtectedRoute><SiteDetailPage /></ProtectedRoute>} />
+          <Route path="/devices" element={<ProtectedRoute><DevicesPage /></ProtectedRoute>} />
+          <Route path="/devices/:deviceId" element={<ProtectedRoute><DeviceDetailPage /></ProtectedRoute>} />
+          <Route path="/alerts" element={<ProtectedRoute><AlertsPage /></ProtectedRoute>} />
+          <Route path="/tickets" element={<ProtectedRoute><TicketsPage /></ProtectedRoute>} />
+          <Route path="/maintenance" element={<ProtectedRoute><MaintenancePage /></ProtectedRoute>} />
 
-          {/* 未登入時重定向到登入頁 */}
           <Route path="*" element={
             isAuthenticated ? <Navigate to="/" /> : <Navigate to="/login" />
           } />
@@ -219,7 +207,6 @@ function AppContent() {
   )
 }
 
-// 主應用組件（提供 AuthProvider 和 ToastProvider）
 function App() {
   return (
     <ErrorBoundary>
