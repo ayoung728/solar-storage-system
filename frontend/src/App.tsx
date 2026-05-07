@@ -11,6 +11,7 @@ import CustomersPage from './pages/CustomersPage'
 import CustomerDetailPage from './pages/CustomerDetailPage'
 import SitesPage from './pages/SitesPage'
 import SiteDetailPage from './pages/SiteDetailPage'
+import UnitDetailPage from './pages/UnitDetailPage'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { ToastProvider, useToast } from './components/Toast'
 import { ErrorBoundary } from './components/ErrorBoundary'
@@ -197,6 +198,7 @@ function AppContent() {
           <Route path="/alerts" element={<ProtectedRoute><AlertsPage /></ProtectedRoute>} />
           <Route path="/tickets" element={<ProtectedRoute><TicketsPage /></ProtectedRoute>} />
           <Route path="/maintenance" element={<ProtectedRoute><MaintenancePage /></ProtectedRoute>} />
+          <Route path="/units/:id" element={<ProtectedRoute><UnitDetailPage /></ProtectedRoute>} />
 
           <Route path="*" element={
             isAuthenticated ? <Navigate to="/" /> : <Navigate to="/login" />
